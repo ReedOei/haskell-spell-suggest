@@ -4,6 +4,7 @@
 
 --- Create a phonetic code database optionally used by
 --- Text.SpellingSuggest and in particular by "thimk"
+import Database.SQLite.Simple
 import System.Console.ParseArgs
 import Text.SpellingSuggest.PCDB
 import Text.SpellingSuggest.Dictionary
@@ -17,13 +18,13 @@ main = do
   dict <- readDictionary dictPath
   let dbPath = getArg av ArgDB
   db <- createDB dict dbPath
-  closeDB db
+  close db
   where
     argd = [ Arg { argIndex = ArgDB,
                    argName = Just "pcdb",
                    argAbbr = Just 'p',
                    argData = argDataOptional "db-path" ArgtypeString,
-                   argDesc = "Database path" }, 
+                   argDesc = "Database path" },
              Arg { argIndex = ArgDict,
                    argName = Nothing,
                    argAbbr = Nothing,

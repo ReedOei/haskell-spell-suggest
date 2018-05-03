@@ -3,8 +3,8 @@
 -- Please see the file COPYING in this distribution for license information.
 
 -- | Simplified interface for spelling suggestion.
-module Text.SpellingSuggest (   
-  PhoneticCoder, SpellingDictionary(FlatFile, WordList), 
+module Text.SpellingSuggest (
+  PhoneticCoder, SpellingDictionary(FlatFile, WordList),
   SearchParams(..), defaultSearchParams,
   findPhoneticCoder, defaultPhoneticCoder, defaultWordFilter,
   dictionaryIsDB, openDictionary, closeDictionary,
@@ -14,6 +14,7 @@ module Text.SpellingSuggest (
   ) where
 
 import Data.List
+import Database.SQLite.Simple
 import Text.SpellingSuggest.Dictionary
 import Text.SpellingSuggest.LowLevel
 import Text.SpellingSuggest.PCDB
@@ -35,18 +36,18 @@ phoneticCoderSoundex = PhoneticCoder {
   phoneticCoderOp = soundex True }
 
 phoneticCoders :: [PhoneticCoder]
-phoneticCoders = 
+phoneticCoders =
   [phoneticCoderPhonix, phoneticCoderSoundex]
 
 -- | Return the coding system with the given name.
 findPhoneticCoder :: String -> Maybe PhoneticCoder
-findPhoneticCoder name = 
+findPhoneticCoder name =
   find ((name ==) . phoneticCoderName) phoneticCoders
 
 -- | Parameters controlling the suggestion search.
 data SearchParams = SearchParams {
   -- | Prefilter to use to limit search.
-  searchParamsFilter :: SpellingWordFilter, 
+  searchParamsFilter :: SpellingWordFilter,
   -- | Phonetic coder to use for matches.
   searchParamsCoder :: PhoneticCoder,
   -- | Maximum number of choices returned.
@@ -69,9 +70,9 @@ defaultSearchParams = SearchParams {
   searchParamsChoices = 3 }
 
 -- | The spelling dictionary.
-data SpellingDictionary = WordList [String] | 
-                          FlatFile String | 
-                          SpellingDatabase DBConnection
+data SpellingDictionary = WordList [String] |
+                          FlatFile String |
+                          SpellingDatabase Connection
 
 -- | For performance reasons, it may sometimes be desirable
 -- to know what's sitting under the dictionary.
@@ -93,22 +94,22 @@ openDictionary dbPath dictPath = do
 
 -- | Close the connection to the given or default database.
 closeDictionary :: SpellingDictionary -> IO ()
-closeDictionary (SpellingDatabase db) = closeDB db
+closeDictionary (SpellingDatabase db) = close db
 closeDictionary _ = return ()
 
 -- | Suggest candidates in order using the given information. Requires
 -- a valid spelling dictionary.
 suggest :: SearchParams -> SpellingDictionary -> String -> IO [String]
 suggest parms db word = do
-  ws <- wordsFromDict db 
+  ws <- wordsFromDict db
   return $ suggestFromList parms ws word
   where
     coder = searchParamsCoder parms
     wordsFromDict (FlatFile path) =
-      readFile path >>= return . lines
+        lines <$> readFile path
     wordsFromDict (WordList ws) =
       return ws
-    wordsFromDict (SpellingDatabase sdb) = 
+    wordsFromDict (SpellingDatabase sdb) =
       let cn = phoneticCoderName coder in
       matchDB sdb cn $ phoneticCoderOp coder word
 

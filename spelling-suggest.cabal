@@ -11,7 +11,7 @@ homepage: https://github.com/gregwebs/haskell-spell-suggest
 category: Console, Text
 data-files: README.md, README.pcdb
 synopsis: Spelling suggestion tool with library and command-line interfaces.
-description: 
+description:
 
     Given a possibly-misspelled word,
     this tool spits out one or more properly-spelled words in order
@@ -32,9 +32,10 @@ flag debug
 
 library
   build-depends: base >= 4.2 && < 5,
-                 edit-distance >= 0.2 && < 0.3,
-                 phonetic-code >= 0.1 && < 0.2,
-                 sqlite >= 0.5.1 && < 0.6
+                 edit-distance,
+                 phonetic-code,
+                 sqlite-simple,
+                 text
   exposed-modules: Text.SpellingSuggest, Text.SpellingSuggest.PCDB,
                    Text.SpellingSuggest.LowLevel,
                    Text.SpellingSuggest.Dictionary
@@ -43,18 +44,18 @@ library
 Executable thimk
   main-is: thimk.hs
   build-depends: base >= 4.2 && < 5,
-                 parseargs >= 0.1.1 && < 0.2,
-                 edit-distance >= 0.2 && < 0.3,
-                 phonetic-code >= 0.1 && < 0.2,
-                 sqlite >= 0.5.1 && < 0.6
+                 parseargs,
+                 edit-distance,
+                 phonetic-code,
+                 sqlite-simple
   ghc-options: -Wall
 
 Executable thimk-makedb
   main-is: thimk-makedb.hs
   build-depends: base >= 4.2 && < 5,
-                 parseargs >= 0.1.1 && < 0.2,
-                 phonetic-code >= 0.1 && < 0.2,
-                 sqlite >= 0.5.1 && < 0.6
+                 edit-distance,
+                 phonetic-code,
+                 sqlite-simple
   ghc-options: -Wall
   if flag(debug)
     cpp-options: -DDEBUG
